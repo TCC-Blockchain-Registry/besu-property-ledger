@@ -1,0 +1,120 @@
+version: '3.8'
+services:
+  validator1:
+    image: hyperledger/besu:23.10.2
+    entrypoint: ["/opt/besu/bin/besu"]
+    user: "0:0"
+    restart: unless-stopped
+    command: [
+      "--data-path=/data",
+      "--genesis-file=/config/genesis.json",
+      "--node-private-key-file=/keys/key",
+      "--p2p-port=30303",
+      "--rpc-http-enabled",
+      "--rpc-http-host=0.0.0.0",
+      "--rpc-http-port=8545",
+      "--min-gas-price=0",
+      "--host-allowlist=*",
+      "--sync-mode=FULL"
+    ]
+    volumes:
+      - validator1-data:/data
+      - ./network/genesis.json:/config/genesis.json
+      - ./network/files/keys/0x13477f25d547b82dbbf932c720d1e1e007bdd2db/key:/keys/key:ro
+    ports:
+      - "8545:8545"
+      - "30303:30303"
+    networks:
+      besu-net:
+        ipv4_address: 172.28.0.11
+
+  validator2:
+    image: hyperledger/besu:23.10.2
+    entrypoint: ["/opt/besu/bin/besu"]
+    user: "0:0"
+    restart: unless-stopped
+    command: [
+      "--data-path=/data",
+      "--genesis-file=/config/genesis.json",
+      "--node-private-key-file=/keys/key",
+      "--p2p-port=30304",
+      "--min-gas-price=0",
+      "--host-allowlist=*",
+      "--bootnodes=enode://118b67db14cb5bb771bf8d694d27023cdd21a4e72c995a75544e8022da7e55d07df5cf289d54c1df8d711ca556e6dad7e5cda2eb562652b5860db04b0de0b303@172.28.0.11:30303",
+      "--sync-mode=FULL"
+    ]
+    volumes:
+      - validator2-data:/data
+      - ./network/genesis.json:/config/genesis.json
+      - ./network/files/keys/0x5bf5fbac219488134b606d264cbd52d4db48a084/key:/keys/key:ro
+    ports:
+      - "30304:30304"
+    networks:
+      besu-net:
+        ipv4_address: 172.28.0.12
+
+  validator3:
+    image: hyperledger/besu:23.10.2
+    entrypoint: ["/opt/besu/bin/besu"]
+    user: "0:0"
+    restart: unless-stopped
+    command: [
+      "--data-path=/data",
+      "--genesis-file=/config/genesis.json",
+      "--node-private-key-file=/keys/key",
+      "--p2p-port=30305",
+      "--min-gas-price=0",
+      "--host-allowlist=*",
+      "--bootnodes=enode://118b67db14cb5bb771bf8d694d27023cdd21a4e72c995a75544e8022da7e55d07df5cf289d54c1df8d711ca556e6dad7e5cda2eb562652b5860db04b0de0b303@172.28.0.11:30303",
+      "--sync-mode=FULL"
+    ]
+    volumes:
+      - validator3-data:/data
+      - ./network/genesis.json:/config/genesis.json
+      - ./network/files/keys/0x744028563f462c31bc954497fbbe2b6a99a90618/key:/keys/key:ro
+    ports:
+      - "30305:30305"
+    networks:
+      besu-net:
+        ipv4_address: 172.28.0.13
+
+  validator4:
+    image: hyperledger/besu:23.10.2
+    entrypoint: ["/opt/besu/bin/besu"]
+    user: "0:0"
+    restart: unless-stopped
+    command: [
+      "--data-path=/data",
+      "--genesis-file=/config/genesis.json",
+      "--node-private-key-file=/keys/key",
+      "--p2p-port=30306",
+      "--min-gas-price=0",
+      "--host-allowlist=*",
+      "--bootnodes=enode://118b67db14cb5bb771bf8d694d27023cdd21a4e72c995a75544e8022da7e55d07df5cf289d54c1df8d711ca556e6dad7e5cda2eb562652b5860db04b0de0b303@172.28.0.11:30303",
+      "--sync-mode=FULL"
+    ]
+    volumes:
+      - validator4-data:/data
+      - ./network/genesis.json:/config/genesis.json
+      - ./network/files/keys/0x94836f0b1fb20bee5df28f795fcde7414ad058c6/key:/keys/key:ro
+    ports:
+      - "30306:30306"
+    networks:
+      besu-net:
+        ipv4_address: 172.28.0.14
+
+
+volumes:
+  validator1-data:
+  validator2-data:
+  validator3-data:
+  validator4-data:
+
+networks:
+  besu-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+

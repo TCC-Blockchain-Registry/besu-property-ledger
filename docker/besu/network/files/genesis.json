@@ -1,0 +1,15 @@
+{
+  "config" : {
+    "chainId" : 1337,
+    "londonBlock" : 0,
+    "qbft" : {
+      "blockperiodseconds" : 2,
+      "epochlength" : 30000,
+      "requesttimeoutseconds" : 10
+    }
+  },
+  "difficulty" : "0x1",
+  "gasLimit" : "0x1fffffffffffff",
+  "coinbase" : "0x0000000000000000000000000000000000000000",
+  "extraData" : "0xf87aa00000000000000000000000000000000000000000000000000000000000000000f8549413477f25d547b82dbbf932c720d1e1e007bdd2db94744028563f462c31bc954497fbbe2b6a99a90618945bf5fbac219488134b606d264cbd52d4db48a0849494836f0b1fb20bee5df28f795fcde7414ad058c6c080c0"
+}

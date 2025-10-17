@@ -1,0 +1,27 @@
+{
+  "genesis": {
+    "config": {
+      "chainId": 1337,
+      "londonBlock": 0,
+      "qbft": {
+        "blockperiodseconds": 2,
+        "epochlength": 30000,
+        "requesttimeoutseconds": 10
+      }
+    },
+    "difficulty": "0x1",
+    "gasLimit": "0x1fffffffffffff",
+    "coinbase": "0x0000000000000000000000000000000000000000"
+  },
+  "blockchain": {
+    "nodes": {
+      "generate": true,
+      "count": 4
+    }
+  },
+  "accounts": {
+    "prefunded": []
+  }
+}
+
+
