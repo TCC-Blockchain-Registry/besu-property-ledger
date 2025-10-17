@@ -1,0 +1,317 @@
+{
+  "info": {
+    "name": "Chain Real State - RPC Queries",
+    "description": "Collection de queries RPC para interagir com os contratos ERC-3643 deployados na rede Besu local",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "rpc_url",
+      "value": "http://127.0.0.1:8545",
+      "type": "default"
+    },
+    {
+      "key": "property_title",
+      "value": "0xd43f6E6A30d00d912791cC314971d2fb028f5AF9",
+      "type": "default"
+    },
+    {
+      "key": "registry_md",
+      "value": "0x4b83B634d349af4689AD42EeC09D2aBC6b496626",
+      "type": "default"
+    },
+    {
+      "key": "approvals_module",
+      "value": "0xE009f733D6d53711C8615Ea00c9B5b1291c37Ab0",
+      "type": "default"
+    },
+    {
+      "key": "identity_registry",
+      "value": "0x351297246a61f9C44e4bD5337D60e04Bb3BFf9Bf",
+      "type": "default"
+    },
+    {
+      "key": "admin_address",
+      "value": "0x565524f400856766f11562832eB809d889491a01",
+      "type": "default"
+    }
+  ],
+  "item": [
+    {
+      "name": "Network",
+      "item": [
+        {
+          "name": "Client Version",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"web3_clientVersion\",\n  \"params\": [],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Block Number",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_blockNumber\",\n  \"params\": [],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getBalance\",\n  \"params\": [\"{{admin_address}}\", \"latest\"],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PropertyTitle Token",
+      "item": [
+        {
+          "name": "Token Name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x06fdde03\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Token Symbol",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x95d89b41\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Token Decimals",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x313ce567\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Balance Of Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x70a08231000000000000000000000000565524f400856766f11562832eb809d889491a01\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Is Paused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x5c975abb\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Is Address Frozen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x33c356de000000000000000000000000565524f400856766f11562832eb809d889491a01\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Properties Of Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x5a3b7e42000000000000000000000000565524f400856766f11562832eb809d889491a01\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Property Owner (Matricula 123456)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x96d4d16e000000000000000000000000000000000000000000000000000000000001e240\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Property Exists (Matricula 123456)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{property_title}}\",\n      \"data\": \"0x74e15f3e000000000000000000000000000000000000000000000000000000000001e240\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identity Registry",
+      "item": [
+        {
+          "name": "Is Address Verified",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_call\",\n  \"params\": [\n    {\n      \"to\": \"{{identity_registry}}\",\n      \"data\": \"0x3b239a7f000000000000000000000000565524f400856766f11562832eb809d889491a01\"\n    },\n    \"latest\"\n  ],\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{rpc_url}}",
+              "host": ["{{rpc_url}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+
