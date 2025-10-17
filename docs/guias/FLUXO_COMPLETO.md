@@ -463,7 +463,7 @@ function TransferRequest({ from, matricula, approvers, onAccept, onReject }) {
 ### **Deploy Inicial**
 
 ```bash
-cd /home/fabiano/college/tcc/chain_real_state
+cd /home/fabiano/college/tcc/besu-property-ledger
 
 # Iniciar rede Besu
 cd docker/besu

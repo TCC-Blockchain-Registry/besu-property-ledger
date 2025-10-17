@@ -8,6 +8,28 @@ Este documento explica como os contratos estão **amarrados** entre si, garantin
 - ✅ Aprovações sejam obrigatórias antes da transferência
 - ✅ Freeze e Pause bloqueiem operações quando necessário
 
+### **⚠️ Conceito Importante: Matrícula vs. Token Value**
+
+```
+📌 Matrícula (uint256): ID único do imóvel no cartório
+   - Exemplo: 123456
+   - Usado para identificar QUAL imóvel
+   - Usado em: PropertyTitleTREX.transferProperty(to, matricula)
+   - Rastreado em: mapping(uint256 => address) propertyOwner
+
+📌 Value (uint256): Quantidade de tokens ERC-20
+   - Sempre: 1 (um token)
+   - Cada propriedade = 1 token indivisível
+   - Usado em: Token.transfer(to, 1)
+   - Usado em: ApprovalsModule com value=1
+```
+
+**Por que sempre 1 token?**
+- Cada imóvel é único e indivisível
+- O token representa a **posse** do imóvel, não valor monetário
+- A matrícula identifica o imóvel específico
+- O token apenas indica "quem é o dono"
+
 ---
 
 ## 🏗️ Arquitetura dos Contratos
@@ -298,13 +320,15 @@ identityRegistry.registerIdentity(bob, bobIdentity, 76);
 // Backend configura aprovadores
 address[] memory approvers = [prefeitura, cartorio, instituicaoFinanceira];
 approvalsModule.configureTransfer(
-    alice,    // from
-    bob,      // to
-    1,        // value (1 token)
+    alice,    // from (vendedora)
+    bob,      // to (comprador)
+    1,        // value (sempre 1 token - cada propriedade = 1 token indivisível)
     compliance,
     approvers
 );
 ```
+
+> **📝 Nota Importante:** O `value` é sempre `1` porque cada propriedade = 1 token indivisível. A matrícula específica do imóvel é rastreada internamente pelo PropertyTitleTREX através do mapeamento `propertyOwner[matricula]`.
 
 #### **Aprovar Transferência:**
 

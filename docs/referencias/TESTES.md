@@ -4,7 +4,7 @@
 
 Este diretório contém testes unitários completos para todos os smart contracts do projeto, escritos usando **Foundry** (Forge).
 
-**Cobertura Total:** **43 testes** | **100% passou** ✅
+**Cobertura Total:** **28 testes** | **100% passou** ✅
 
 ---
 
@@ -70,30 +70,29 @@ Testa o módulo de registro de propriedades.
 
 ---
 
-### 3. **`PropertyTitle.t.sol`** (15 testes)
+### 3. **`PropertyTitle.t.sol`** (Planejado - Ainda não implementado)
 
-Testa o token de título de propriedade (ERC-20 + ERC-3643).
+Testes para o token principal PropertyTitleTREX serão implementados futuramente, incluindo:
 
-#### **Testes de Emissão de Propriedade:**
-- ✅ `test_IssueProperty` - Emite título de propriedade
-- ✅ `test_RevertWhen_IssueProperty_NotIssuer` - Rejeita emissão por não-issuer
-- ✅ `test_RevertWhen_IssueProperty_NotVerified` - Rejeita emissão para não verificado
-- ✅ `test_RevertWhen_IssueProperty_AlreadyIssued` - Rejeita emissão duplicada
+#### **Planejados - Emissão de Propriedade:**
+- ⏳ `test_IssueProperty` - Emite título de propriedade
+- ⏳ `test_RevertWhen_IssueProperty_NotAgent` - Rejeita emissão por não-agent
+- ⏳ `test_RevertWhen_IssueProperty_NotVerified` - Rejeita emissão para não verificado
+- ⏳ `test_RevertWhen_IssueProperty_AlreadyIssued` - Rejeita emissão duplicada
 
-#### **Testes de Transferência:**
-- ✅ `test_TransferProperty_Success` - Transferência completa com sucesso
-- ✅ `test_RevertWhen_Transfer_NotConfigured` - Bloqueia transferência não configurada
-- ✅ `test_RevertWhen_Transfer_MissingApprovals` - Bloqueia transferência com aprovações faltando
-- ✅ `test_RevertWhen_Transfer_BuyerNotAccepted` - Bloqueia transferência sem aceitação do comprador
-- ✅ `test_RevertWhen_Transfer_PropertyNotRegular` - Bloqueia transferência de propriedade irregular
-- ✅ `test_RevertWhen_Transfer_RecipientNotVerified` - Bloqueia transferência para não verificado
+#### **Planejados - Transferência:**
+- ⏳ `test_TransferProperty_Success` - Transferência completa com sucesso
+- ⏳ `test_RevertWhen_Transfer_NotConfigured` - Bloqueia transferência não configurada
+- ⏳ `test_RevertWhen_Transfer_MissingApprovals` - Bloqueia transferência com aprovações faltando
+- ⏳ `test_RevertWhen_Transfer_BuyerNotAccepted` - Bloqueia transferência sem aceitação do comprador
+- ⏳ `test_RevertWhen_Transfer_PropertyNotRegular` - Bloqueia transferência de propriedade irregular
 
-#### **Testes de Padrão ERC-20:**
-- ✅ `test_Name` - Verifica nome do token (PropertyTitle)
-- ✅ `test_Symbol` - Verifica símbolo do token (TITLE)
-- ✅ `test_Decimals` - Verifica decimais (0 - indivisível)
-- ✅ `test_TotalSupply` - Verifica supply total
-- ✅ `test_GetPropertiesOf` - Lista propriedades de um dono
+#### **Planejados - Features T-REX:**
+- ⏳ `test_FreezeProperty` - Congela propriedade específica
+- ⏳ `test_ForcedTransferProperty` - Transferência forçada por agente
+- ⏳ `test_GetPropertiesOf` - Lista propriedades de um dono
+
+> **Nota:** Os módulos de compliance (ApprovalsModule e RegistryMDCompliance) já estão 100% testados. Os testes do PropertyTitleTREX serão adicionados para testar a integração completa.
 
 ---
 
@@ -109,16 +108,13 @@ forge test
 forge test -vv
 ```
 
-### **Testes Específicos**
+### **Testes Específicos por Contrato**
 ```bash
-# ApprovalsModule
+# ApprovalsModule (17 testes)
 forge test --match-contract ApprovalsModuleTest
 
-# RegistryMDCompliance
+# RegistryMDCompliance (11 testes)
 forge test --match-contract RegistryMDComplianceTest
-
-# PropertyTitle
-forge test --match-contract PropertyTitleTest
 ```
 
 ### **Teste Individual**
@@ -138,22 +134,22 @@ forge test --gas-report
 
 ---
 
-## 📊 Estatísticas de Gas
+## 📊 Estatísticas de Gas (Medições Reais)
 
-### **ApprovalsModule** (mais usado)
-- `configureTransfer`: ~155k gas
-- `approve`: ~75k gas (primeira vez), ~30k (subsequentes)
-- `acceptTransfer`: ~105k gas
-- `moduleCheck`: ~15k gas (view)
+### **ApprovalsModule**
+- `configureTransfer`: ~155,594 gas
+- `approve` (primeira vez): ~207,346 gas
+- `acceptTransfer`: ~105,407 gas
+- `moduleCheck`: ~15,224 gas (view function)
+- `moduleTransferAction` (limpeza): ~79,716 gas
 
 ### **RegistryMDCompliance**
-- `registerProperty`: ~187k gas
-- `updateProperty`: ~70k gas
-- `moduleCheck`: ~15k gas (view)
+- `registerProperty`: ~187,275 gas
+- `updateProperty`: ~169,833 gas
+- `moduleCheck` (sucesso): ~180,728 gas
+- `getProperty`: Somente view (gas mínimo)
 
-### **PropertyTitle**
-- `issueProperty`: ~85k gas
-- `transferProperty` (com compliance completo): ~450k gas
+> **Nota:** Para obter estatísticas atualizadas, rode `forge test --gas-report`
 
 ---
 

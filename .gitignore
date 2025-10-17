@@ -11,6 +11,5 @@ out/
 # Deployment artifacts (local development)
 deployed-addresses.txt
 
-
 # Dotenv file
 .env

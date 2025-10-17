@@ -204,34 +204,60 @@ contract ModularCompliance {
 ### **3. ApprovalsModule**
 
 ```solidity
-contract ApprovalsModule is AbstractModule {
-    mapping(bytes32 => uint256) approvals; // bitmask
-    bytes32[] groups;
-    uint256 requiredMask;
+contract ApprovalsModule is IModule {
+    struct TransferConfig {
+        address[] requiredApprovers;
+        mapping(address => bool) hasApproved;
+        uint256 approvalCount;
+        bool isConfigured;
+        bool buyerAccepted;  // comprador precisa aceitar
+    }
+    
+    mapping(bytes32 => TransferConfig) private transferConfigs;
+    
+    function configureTransfer(from, to, value, compliance, approvers) {
+        bytes32 hash = keccak256(from, to, value, compliance);
+        transferConfigs[hash].requiredApprovers = approvers;
+        transferConfigs[hash].isConfigured = true;
+    }
     
     function approve(from, to, value, compliance) {
         bytes32 hash = keccak256(from, to, value, compliance);
-        uint256 bits = getGroupBits(msg.sender);
-        approvals[hash] |= bits;
+        require(_isRequiredApprover(transferConfigs[hash], msg.sender));
+        transferConfigs[hash].hasApproved[msg.sender] = true;
+        transferConfigs[hash].approvalCount++;
+    }
+    
+    function acceptTransfer(from, value, compliance) {
+        bytes32 hash = keccak256(from, msg.sender, value, compliance);
+        transferConfigs[hash].buyerAccepted = true;
     }
     
     function moduleCheck(from, to, value, compliance) returns (bool) {
         bytes32 hash = keccak256(from, to, value, compliance);
-        return (approvals[hash] & requiredMask) == requiredMask;
+        TransferConfig storage config = transferConfigs[hash];
+        
+        if (!config.isConfigured) return false;
+        if (config.approvalCount != config.requiredApprovers.length) return false;
+        if (!config.buyerAccepted) return false;
+        
+        return true;
     }
     
     function moduleTransferAction(from, to, value) {
         bytes32 hash = keccak256(from, to, value, msg.sender);
-        delete approvals[hash]; // limpa aprovações
+        delete transferConfigs[hash]; // limpa configuração completa
     }
 }
 ```
 
 **Responsabilidades:**
-- ✅ Armazenar aprovações por transferência específica
-- ✅ Validar se todas as aprovações necessárias estão presentes
-- ✅ Limpar aprovações após transferência (não reutilizáveis)
-- ✅ Gerenciar grupos dinâmicos de aprovadores
+- ✅ Configurar lista específica de aprovadores por transferência
+- ✅ Armazenar aprovações individuais por aprovador
+- ✅ Validar se TODOS os aprovadores requeridos aprovaram
+- ✅ Exigir aceitação explícita do comprador
+- ✅ Limpar configuração completa após transferência (não reutilizável)
+- ✅ Sistema totalmente dinâmico (sem roles fixos de aprovação)
 
 ---
 
@@ -290,40 +316,6 @@ contract IdentityRegistry {
 
 ---
 
-### **6. Backend (Off-Chain) - CPF ↔ Wallet**
-
-```javascript
-// PostgreSQL Database
-TABLE users {
-    id: serial,
-    cpf: varchar(11) ENCRYPTED,
-    wallet_address: varchar(42),
-    status: varchar(20),
-    onchain_registered: boolean
-}
-
-// API REST
-POST /api/kyc/register     // Registrar CPF ↔ wallet
-GET  /api/kyc/status/:addr // Consultar status
-POST /api/kyc/approve      // Aprovar KYC (admin)
-
-// Worker (cron job)
-processApprovedUsers() {
-    // 1. SELECT users WHERE status='approved' AND onchain_registered=false
-    // 2. Deploy Identity contract
-    // 3. identityRegistry.registerIdentity()
-    // 4. UPDATE users SET onchain_registered=true
-}
-```
-
-**Responsabilidades:**
-- ✅ Associar CPF ↔ endereço (banco de dados privado)
-- ✅ Validar KYC (API Receita Federal, documentos)
-- ✅ Sincronizar com blockchain (worker automático)
-- ✅ LGPD compliance (dados podem ser deletados)
-
----
-
 ## 🔐 Camadas de Segurança
 
 ### **Layer 1: Network (Besu PoA)**
@@ -349,9 +341,10 @@ processApprovedUsers() {
 
 ### **Layer 4: Access Control (Roles)**
 ```
-✓ REGISTRAR_ROLE → apenas cartório
-✓ ISSUER_ROLE → apenas admin
-✓ GRUPO_ROLE → prefeitura/cartório/IF separados
+✓ REGISTRAR_ROLE → cartório (registrar e atualizar propriedades)
+✓ AGENT_ROLE → admin (emitir, pausar, freeze, forcedTransfer)
+✓ ORCHESTRATOR_ROLE → backend (configurar aprovadores por transferência)
+✓ Aprovadores → SEM ROLES FIXOS (definidos dinamicamente por transferência)
 ```
 
 ---
@@ -363,10 +356,11 @@ processApprovedUsers() {
 - ✅ **Habilitar/desabilitar** módulos dinamicamente
 - ✅ **Validações paralelas** (cada módulo é independente)
 
-### **Grupos de Aprovação Dinâmicos**
-- ✅ **Adicionar novos grupos** (ex: Receita Federal, Meio Ambiente)
-- ✅ **Configurar máscaras** (ex: exigir 2 de 4, 3 de 5)
-- ✅ **Roles flexíveis** (um endereço pode ter múltiplos grupos)
+### **Aprovadores Dinâmicos por Transferência**
+- ✅ **Configurar aprovadores específicos** para cada transferência individualmente
+- ✅ **Quantidade flexível** (1, 2, 3, 5+ aprovadores conforme necessário)
+- ✅ **Sem roles fixos** (aprovadores decididos por regras de negócio do backend)
+- ✅ **Aceitação do comprador** obrigatória para proteger destinatário
 
 ### **Off-chain + On-chain**
 - ✅ **KYC off-chain** (escala infinita, privado)
