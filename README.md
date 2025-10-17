@@ -2,6 +2,30 @@
 
 Sistema de tokenização e transferência de imóveis usando Hyperledger Besu (PoA) e padrão ERC-3643 (T-REX) com compliance modular.
 
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.17-363636?logo=solidity)](https://soliditylang.org/)
+[![Foundry](https://img.shields.io/badge/Built%20with-Foundry-FFDB1C?logo=foundry)](https://getfoundry.sh/)
+[![Hyperledger Besu](https://img.shields.io/badge/Besu-23.10.2-2F3134?logo=hyperledger)](https://besu.hyperledger.org/)
+[![Tests](https://img.shields.io/badge/Tests-28%20passing-success)](./test)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+---
+
+## 📑 Índice
+
+- [📋 Visão Geral](#-visão-geral)
+- [🏗️ Arquitetura](#️-arquitetura)
+- [🚀 Quick Start](#-quick-start)
+- [📚 Documentação](#-documentação)
+- [🔄 Fluxos Resumidos](#-fluxos-resumidos)
+- [🧪 Testes](#-testes)
+- [🔍 Consultas e Integração](#-consultas-e-integração)
+- [📊 Estrutura do Projeto](#-estrutura-do-projeto)
+- [🔒 Segurança e Privacidade](#-segurança-e-privacidade)
+- [🌐 Rede Besu](#-rede-besu-poa)
+- [✅ Verificações Rápidas](#-verificações-rápidas)
+- [📈 Roadmap](#-roadmap)
+- [📞 Suporte](#-suporte)
+
 ---
 
 ## 📋 Visão Geral
@@ -11,6 +35,29 @@ Este projeto implementa um sistema blockchain para:
 - **Tokenização** via ERC-3643 (security tokens com compliance)
 - **Transferências reguladas** com aprovadores configuráveis por transferência (1, 2, 3+ entidades)
 - **Identidade verificada** com associação CPF ↔ endereço Ethereum (off-chain)
+
+### **✨ Features Principais**
+
+- ✅ **Tokenização de Imóveis:** Cada propriedade é representada por um token ERC-3643 único e indivisível
+- ✅ **Compliance Modular:** Sistema de validação flexível com múltiplos módulos customizáveis
+- ✅ **Aprovações Dinâmicas:** Configure aprovadores específicos para cada transferência (1, 2, 3+ entidades)
+- ✅ **Identidade Verificada:** OnchainID com associação CPF ↔ Wallet off-chain (privacidade garantida)
+- ✅ **Controles de Emergência:** Pause global e freeze de contas específicas
+- ✅ **Transferências Forçadas:** Recovery de tokens em casos especiais (por agentes autorizados)
+- ✅ **Registro Completo:** Matrícula, comarca, endereço, metragem e tipo do imóvel on-chain
+- ✅ **Zero Gas Fees:** Rede privada Besu configurada sem custos de transação
+- ✅ **28 Testes Unitários:** Cobertura completa dos contratos principais
+
+### **🛠️ Tecnologias Utilizadas**
+
+| Tecnologia | Versão | Uso |
+|------------|--------|-----|
+| Hyperledger Besu | 23.10.2 | Blockchain privado PoA (QBFT) |
+| Solidity | 0.8.17 | Smart contracts |
+| Foundry | Latest | Build, testes e deploy |
+| ERC-3643 (T-REX) | Latest | Framework de security tokens |
+| OpenZeppelin | Latest | Bibliotecas de contratos seguros |
+| Docker | >= 20.10 | Orquestração de rede |
 
 ---
 
@@ -26,23 +73,31 @@ Este projeto implementa um sistema blockchain para:
         │                     │                     │
 ┌───────▼────────┐   ┌────────▼────────┐   ┌───────▼────────┐
 │  T-REX (ERC3643) │   │ Identity System │   │ Property Reg.  │
-│                │   │                 │   │                │
-│ • ModularComp. │   │ • CPFRegistry   │   │ • RegistryMD   │
-│ • SecurityToken│   │ • OnchainID     │   │   Compliance   │
-│ • Approvals    │   │ • IdentityReg.  │   │                │
+│                │   │   (On-Chain)    │   │                │
+│ • ModularComp. │   │ • OnchainID     │   │ • RegistryMD   │
+│ • PropertyTitle│   │ • IdentityReg.  │   │   Compliance   │
+│ • Approvals    │   │ • Verified IDs  │   │                │
 └────────────────┘   └─────────────────┘   └────────────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │  Backend (Off-Chain) │
+                    │                    │
+                    │ • CPF ↔ Wallet DB  │
+                    │ • KYC Validation   │
+                    │ • Event Listener   │
+                    └────────────────────┘
 ```
 
 ### **Componentes Principais**
 
-| Componente | Função |
-|------------|--------|
-| `SecurityToken.sol` | Token ERC-3643 (ERC20 regulado) representando imóveis |
-| `RegistryMDCompliance.sol` | Módulo de registro e validação de imóveis |
-| `ApprovalsModule.sol` | Módulo de aprovações **configuráveis por transferência** (1 a N aprovadores) |
-| `IdentityRegistry` (T-REX) | Registro de identidades verificadas (OnchainID) |
-| `ModularCompliance` (T-REX) | Orquestrador de módulos de compliance |
-| **Backend (off-chain)** | **Associação CPF ↔ wallet + lógica de aprovadores (banco de dados)** |
+| Componente | Localização | Função |
+|------------|-------------|--------|
+| `PropertyTitleTREX.sol` | On-Chain | Token ERC-3643 (T-REX Full) representando títulos de propriedade |
+| `RegistryMDCompliance.sol` | On-Chain | Módulo de registro e validação de imóveis |
+| `ApprovalsModule.sol` | On-Chain | Módulo de aprovações **configuráveis por transferência** (1 a N aprovadores) |
+| `IdentityRegistry` (T-REX) | On-Chain | Registro de identidades verificadas (OnchainID) - **sem CPF** |
+| `ModularCompliance` (T-REX) | On-Chain | Orquestrador de módulos de compliance |
+| **Backend API/DB** | Off-Chain | **Associação CPF ↔ wallet + KYC + eventos blockchain** |
 
 ---
 
@@ -53,7 +108,7 @@ Este projeto implementa um sistema blockchain para:
 ```bash
 # 1. Clonar repositório
 git clone <repo>
-cd chain_real_state
+cd besu-property-ledger
 
 # 2. Instalar dependências
 forge install
@@ -65,8 +120,11 @@ forge install
 **Resultado:** Sistema completo rodando em ~3-5 minutos! 🎉
 
 **Pré-requisitos:**
-- Docker & Docker Compose
-- Foundry (forge, cast)
+- **Docker** (>= 20.10) & **Docker Compose** (>= 2.0)
+- **Foundry** (forge, cast, anvil) - [Instalar](https://getfoundry.sh)
+- **Git** para clonar o repositório
+- **Sistema Operacional:** Linux, macOS ou WSL2 (Windows)
+- **Memória RAM:** Mínimo 4GB recomendado
 
 ---
 
@@ -83,7 +141,7 @@ foundryup
 
 ```bash
 git clone <repo>
-cd chain_real_state
+cd besu-property-ledger
 forge install
 ```
 
@@ -209,36 +267,42 @@ PropertyInfo memory prop = PropertyInfo({
 });
 registryModule.registerProperty(prop);
 
-// 3. Mintar token
-securityToken.mint(owner, 1 ether);
+// 3. Mintar token (amount = matrícula do imóvel)
+securityToken.mint(owner, matriculaId);
 ```
 
 ### **Transferência de Imóvel**
 
 ```solidity
-// 1. Garantir que comprador tem identidade
+// 1. Garantir que comprador tem identidade verificada
 identityRegistry.registerIdentity(buyer, buyerIdentity, 76);
 
 // 2. Configurar aprovadores para esta transferência (backend/orchestrator)
 address[] memory approvers = new address[](3);
-approvers[0] = prefeituraAddr;
-approvers[1] = cartorioAddr;
-approvers[2] = IFAddr;
+approvers[0] = prefeituraAddr;  // Prefeitura
+approvers[1] = cartorioAddr;    // Cartório
+approvers[2] = IFAddr;          // Instituto Fundiário
 approvalsModule.configureTransfer(seller, buyer, matriculaId, compliance, approvers);
 
-// 3. Cada aprovador aprova
-approvalsModule.approve(seller, buyer, matriculaId, compliance); // Prefeitura
-approvalsModule.approve(seller, buyer, matriculaId, compliance); // Cartório
-approvalsModule.approve(seller, buyer, matriculaId, compliance); // IF
+// 3. Cada aprovador aprova individualmente
+approvalsModule.approve(seller, buyer, matriculaId, compliance); // Prefeitura aprova
+approvalsModule.approve(seller, buyer, matriculaId, compliance); // Cartório aprova
+approvalsModule.approve(seller, buyer, matriculaId, compliance); // IF aprova
 
-// 4. Comprador ACEITA a transferência
-approvalsModule.acceptTransfer(seller, matriculaId, compliance); // Bob aceita
+// 4. Comprador ACEITA explicitamente a transferência (proteção)
+approvalsModule.acceptTransfer(seller, matriculaId, compliance);
 
-// 5. Transferência (executada pelo vendedor)
-securityToken.transfer(buyer, amount);
-// → Valida: identidades + 3/3 aprovações + aceitação do comprador + regularidade
-// → Limpa configuração após sucesso
+// 5. Vendedor executa a transferência
+securityToken.transfer(buyer, matriculaId);
+// → Sistema valida AUTOMATICAMENTE:
+//   ✓ Ambos têm identidade verificada
+//   ✓ Todas as 3 aprovações foram dadas
+//   ✓ Comprador aceitou a transferência
+//   ✓ Imóvel está regular
+// → Configuração é LIMPA automaticamente após sucesso
 ```
+
+> **💡 Nota:** O `amount` na transferência representa a matrícula do imóvel, não um valor monetário! O pagamento acontece off-chain.
 
 ---
 
@@ -261,26 +325,39 @@ identityRegistry: admin é Agent (pode registrar identidades)
 
 ### **Sistema de Aprovadores Dinâmico**
 
-Não há roles fixos de aprovação! Cada transferência define sua própria lista de aprovadores:
+**Não há roles fixos de aprovação!** Cada transferência define sua própria lista de aprovadores baseada em regras de negócio:
 
 ```solidity
-// Exemplo: Transferência A requer 3 aprovadores
-configureTransfer(alice, bob, 123, [0xPref, 0xCart, 0xIF]);
+// 📍 Transferência em zona urbana → 3 aprovadores
+configureTransfer(alice, bob, 123, [prefeitura, cartorio, institutoFundiario]);
 
-// Exemplo: Transferência B requer apenas 1 aprovador
-configureTransfer(carlos, diana, 456, [0xCart]);
+// 🏞️ Transferência simples → 1 aprovador
+configureTransfer(carlos, diana, 456, [cartorio]);
 
-// Exemplo: Transferência C requer 5 aprovadores
-configureTransfer(eduardo, fernanda, 789, [0xPref, 0xCart, 0xIF, 0xIPHAN, 0xMeioAmb]);
+// 🏛️ Transferência de imóvel histórico → 5 aprovadores
+configureTransfer(eduardo, fernanda, 789, [prefeitura, cartorio, IF, IPHAN, meioAmbiente]);
+
+// 🌳 Transferência em área rural → aprovadores específicos
+configureTransfer(gustavo, helena, 999, [INCRA, meioAmbiente, cartorio]);
 ```
 
-O backend decide quem aprova baseado em regras de negócio (tipo de imóvel, localização, etc.)
+**Como funciona:**
+- Backend/Orchestrator analisa o imóvel (tipo, localização, características)
+- Define automaticamente quais entidades devem aprovar
+- Configura a lista de aprovadores específica para aquela transferência
+- Após a transferência, configuração é limpa (não reutilizável)
+
+**Vantagens:**
+- ✅ Flexibilidade total por transferência
+- ✅ Regras de negócio implementadas off-chain (fácil manutenção)
+- ✅ Não requer mudanças nos contratos para adicionar novos aprovadores
+- ✅ Segurança: aprovações não são reutilizáveis
 
 ---
 
 ## 🧪 Testes
 
-### **✅ 41 Testes Unitários Implementados**
+### **✅ 28 Testes Unitários Implementados**
 
 ```bash
 # Rodar todos os testes
@@ -288,8 +365,7 @@ forge test -vv
 
 # Resultado:
 # ✅ ApprovalsModuleTest (17 testes)
-# ✅ RegistryMDComplianceTest (11 testes)  
-# ⏳ PropertyTitleTREXTest (a ser implementado)
+# ✅ RegistryMDComplianceTest (11 testes)
 # Total: 28 tests passed, 0 failed
 
 # Gas report
@@ -299,7 +375,7 @@ forge test --gas-report
 forge coverage
 
 # Teste específico
-forge test --match-test test_Transfer_Success -vvv
+forge test --match-test test_ModuleCheck_Success -vvv
 ```
 
 📖 **[Documentação Completa dos Testes](./docs/referencias/TESTES.md)**
@@ -325,7 +401,7 @@ curl -X POST http://127.0.0.1:8545 \
 
 Importe a collection pronta para testar todas as queries:
 
-📥 **[docs/collections/Postman_Collection.json](./docs/collections/Postman_Collection.json)**
+📥 **[Postman_Collection.json](./docs/collections/Postman_Collection.json)**
 
 Queries disponíveis:
 - ✅ Token info (name, symbol, decimals)
@@ -342,7 +418,7 @@ Queries disponíveis:
 ## 📊 Estrutura do Projeto
 
 ```
-chain_real_state/
+besu-property-ledger/
 ├── src/
 │   ├── token/
 │   │   └── PropertyTitleTREX.sol      # Token ERC-3643 Full (freeze/pause)
@@ -352,12 +428,18 @@ chain_real_state/
 │   │       └── RegistryMDCompliance.sol # Registro e validação de imóveis
 ├── script/
 │   ├── DeployPropertyTitleTREX.s.sol  # Deploy Foundry (T-REX Full)
+│   ├── queries/                       # Scripts de consulta
+│   │   ├── test-queries.sh            # Queries JSON-RPC
+│   │   └── test-queries-simple.sh     # Queries simplificadas
 │   └── setup/                         # Scripts de automação
 │       ├── setup-all.sh               # Setup completo
 │       ├── setup-network.sh           # Apenas rede
 │       ├── build-contracts.sh         # Apenas build
 │       ├── deploy-contracts.sh        # Apenas deploy
 │       └── teardown-network.sh        # Teardown
+├── test/
+│   ├── ApprovalsModule.t.sol          # Testes do módulo de aprovações (17 testes)
+│   └── RegistryMDCompliance.t.sol     # Testes do registro de imóveis (11 testes)
 ├── docs/
 │   ├── ARQUITETURA.md                 # Diagrama e arquitetura geral
 │   ├── AMARRACAO_CONTRATOS.md         # Como contratos se conectam
@@ -365,16 +447,22 @@ chain_real_state/
 │   │   └── FLUXO_COMPLETO.md          # Guia completo: registro + transferência
 │   ├── backend/
 │   │   └── CPF_WALLET.md              # Backend: CPF ↔ wallet (off-chain)
+│   ├── collections/
+│   │   └── Postman_Collection.json    # Collection Postman para queries
 │   └── referencias/
 │       ├── ERC3643_ANALISE.md         # Análise técnica ERC-3643
 │       ├── FREEZE_PAUSE.md            # Features freeze/pause
-│       └── TESTES.md                  # Documentação dos testes
+│       ├── TESTES.md                  # Documentação dos testes
+│       ├── SCRIPTS.md                 # Documentação dos scripts
+│       └── RPC_QUERIES.md             # Guia de queries RPC
 ├── docker/
 │   └── besu/
 │       ├── docker-compose.yml         # 4 validators PoA (QBFT)
 │       ├── generate.sh                # Gera keys e genesis
-│       └── network/
-│           └── genesis.json           # Genesis com zeroBaseFee
+│       ├── network/
+│       │   └── genesis.json           # Genesis com zeroBaseFee
+│       └── operator/                  # Ferramentas auxiliares
+├── deployed-addresses.txt             # Endereços dos contratos deployados
 └── foundry.toml                       # Config Foundry (via-ir, optimizer)
 ```
 
@@ -439,30 +527,119 @@ docker compose down -v
 
 ---
 
+## ✅ Verificações Rápidas
+
+### **Sistema está funcionando?**
+
+```bash
+# 1. Verificar se a rede Besu está rodando
+cd docker/besu && docker compose ps
+
+# 2. Verificar se os contratos foram deployados
+cat deployed-addresses.txt
+
+# 3. Rodar os testes para validar contratos
+forge test -vv
+
+# 4. Fazer uma query simples (verificar se RPC responde)
+./script/queries/test-queries-simple.sh
+```
+
+### **Resetar Ambiente Completo**
+
+```bash
+# 1. Parar e limpar rede
+cd docker/besu && docker compose down -v
+
+# 2. Limpar builds e caches
+cd ../.. && forge clean
+
+# 3. Recriar tudo do zero
+./script/setup/setup-all.sh
+```
+
+---
+
 ## 📈 Roadmap
 
-- [x] Implementação ERC-3643 (T-REX)
-- [x] Módulo de registro de imóveis
-- [x] Módulo de aprovações dinâmicas (configurável por transferência)
+### ✅ **Concluído**
+- [x] Implementação ERC-3643 (T-REX Full)
+- [x] Módulo de registro de imóveis (RegistryMDCompliance)
+- [x] Módulo de aprovações dinâmicas (ApprovalsModule - configurável por transferência)
 - [x] Sistema de identidade (OnchainID + CPF off-chain)
-- [x] Deploy scripts
-- [x] Documentação completa (incluindo backend off-chain e aprovadores dinâmicos)
-- [ ] Implementar backend (Node.js + PostgreSQL)
-- [ ] Testes unitários (smart contracts)
-- [ ] Testes de integração
-- [ ] Interface web (frontend)
-- [ ] Integração com APIs externas (Receita Federal, etc.)
+- [x] Deploy scripts automatizados (setup-all.sh)
+- [x] Documentação completa do sistema
+- [x] Testes unitários dos módulos (28 testes - 100% passando)
+- [x] Rede Besu PoA (QBFT) com 4 validators
+- [x] Scripts de queries JSON-RPC
+- [x] Collection Postman para testes
+
+### 🚧 **Em Desenvolvimento**
+- [ ] Implementar backend completo (Node.js + PostgreSQL)
+  - [ ] API REST para registro de usuários
+  - [ ] Associação CPF ↔ Wallet
+  - [ ] Worker para sincronização de eventos blockchain
+  - [ ] Sistema KYC
+- [ ] Testes de integração end-to-end
+- [ ] Interface web (frontend React/Vue)
+
+### 🔮 **Planejado**
+- [ ] Integração com APIs externas (Receita Federal, Cartórios)
+- [ ] Sistema de notificações
+- [ ] Dashboard administrativo
 - [ ] Auditoria de segurança
+- [ ] Documentação de APIs
+- [ ] Deploy em testnet pública
 
 ---
 
 ## 🤝 Contribuindo
 
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -m 'Add nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+Contribuições são bem-vindas! Aqui está como você pode ajudar:
+
+### **Como Contribuir**
+
+1. **Fork o projeto** no GitHub
+2. **Clone seu fork** localmente
+   ```bash
+   git clone https://github.com/seu-usuario/besu-property-ledger.git
+   cd besu-property-ledger
+   ```
+3. **Crie uma branch** para sua feature/fix
+   ```bash
+   git checkout -b feature/minha-nova-funcionalidade
+   ```
+4. **Faça suas alterações** e teste
+   ```bash
+   forge test -vv  # Certifique-se que todos os testes passam
+   ```
+5. **Commit suas mudanças** com mensagens claras
+   ```bash
+   git commit -m 'feat: adiciona nova funcionalidade X'
+   ```
+6. **Push para seu fork**
+   ```bash
+   git push origin feature/minha-nova-funcionalidade
+   ```
+7. **Abra um Pull Request** com descrição detalhada
+
+### **Áreas para Contribuir**
+
+- 🧪 Adicionar mais testes unitários
+- 📝 Melhorar documentação
+- 🐛 Corrigir bugs
+- ✨ Implementar novas features
+- 🔐 Melhorias de segurança
+- ⚡ Otimizações de gas
+- 🎨 Melhorias de interface (quando o frontend for implementado)
+
+### **Diretrizes**
+
+- Siga o estilo de código existente
+- Adicione testes para novas funcionalidades
+- Atualize a documentação conforme necessário
+- Mantenha commits pequenos e focados
+- Use mensagens de commit descritivas
 
 ---
 
@@ -474,10 +651,34 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 📞 Suporte
 
-Para dúvidas ou problemas:
-- Abra uma [issue](../../issues)
-- Consulte a [documentação](./docs/)
-- Contato: [seu-email]
+### **Recursos Disponíveis**
+
+📚 **Documentação:**
+- [Arquitetura do Sistema](./docs/ARQUITETURA.md)
+- [Fluxo Completo](./docs/guias/FLUXO_COMPLETO.md)
+- [Guia de Scripts](./docs/referencias/SCRIPTS.md)
+- [Documentação de Testes](./docs/referencias/TESTES.md)
+
+🔍 **Troubleshooting Comum:**
+
+1. **Erro ao conectar na rede Besu:**
+   - Verifique: `cd docker/besu && docker compose ps`
+   - Solução: `docker compose down && docker compose up -d`
+
+2. **Contratos não deployados:**
+   - Verifique: `cat deployed-addresses.txt`
+   - Solução: `./script/setup/deploy-contracts.sh`
+
+3. **Testes falhando:**
+   - Solução: `forge clean && forge build && forge test`
+
+4. **Erro de compilação:**
+   - Verifique: `forge --version`
+   - Solução: `foundryup` para atualizar Foundry
+
+📝 **Reportar Problemas:**
+- Abra uma [issue](../../issues) com detalhes do erro
+- Inclua logs relevantes e versões das ferramentas
 
 ---
 
