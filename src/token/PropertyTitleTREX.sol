@@ -2,6 +2,16 @@
 pragma solidity 0.8.17;
 
 import {Token} from "@trex/token/Token.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+
+/**
+ * @title IApproverValidator
+ * @notice Interface genérica para validadores modulares
+ */
+interface IApproverValidator {
+    function validateTransfer(address from, address to, uint256 value)
+        external view returns (bool approved, string memory reason);
+}
 
 /**
  * @title PropertyTitleTREX
@@ -39,7 +49,13 @@ import {Token} from "@trex/token/Token.sol";
  * - Agentes podem congelar contas específicas (compliance)
  * - Agentes podem forçar transferências (recuperação/correção)
  */
-contract PropertyTitleTREX is Token {
+contract PropertyTitleTREX is Token, AccessControl {
+    
+    // ========== Roles das Instituições ==========
+    
+    bytes32 public constant FINANCIAL_ROLE = keccak256("FINANCIAL_ROLE");
+    bytes32 public constant REGISTRY_OFFICE_ROLE = keccak256("REGISTRY_OFFICE_ROLE");
+    bytes32 public constant MUNICIPALITY_ROLE = keccak256("MUNICIPALITY_ROLE");
     
     // ========== Amarração Token ↔ Imóvel ==========
     
@@ -54,6 +70,19 @@ contract PropertyTitleTREX is Token {
     
     /// @notice Verificar se uma matrícula já foi emitida
     mapping(uint256 => bool) public propertyExists;
+    
+    // ========== Sistema de Aprovações ==========
+    
+    /// @notice Contratos validadores opcionais (endereço 0 = não usa validador)
+    address public financialValidator;
+    address public registryOfficeValidator;
+    address public municipalityValidator;
+    
+    /// @notice Aprovações manuais: hash da transferência → instituição → aprovado
+    /// hash = keccak256(abi.encode(from, to, matriculaId))
+    mapping(bytes32 => bool) private financialApprovals;
+    mapping(bytes32 => bool) private registryOfficeApprovals;
+    mapping(bytes32 => bool) private municipalityApprovals;
     
     // ========== Eventos Customizados ==========
     
@@ -72,6 +101,19 @@ contract PropertyTitleTREX is Token {
     /// @param matricula ID do imóvel
     /// @param frozen Status de congelamento
     event PropertyFrozen(uint256 indexed matricula, bool frozen);
+    
+    /// @notice Emitido quando uma instituição aprova uma transferência
+    event TransferApprovalGranted(
+        bytes32 indexed transferHash,
+        string indexed institution,
+        address indexed approver,
+        address from,
+        address to,
+        uint256 matricula
+    );
+    
+    /// @notice Emitido quando um validador é configurado
+    event ValidatorSet(string indexed institution, address indexed validator);
     
     // ========== Inicialização (Upgradeable Pattern) ==========
     
@@ -139,25 +181,41 @@ contract PropertyTitleTREX is Token {
      * 
      * IMPORTANTE: matricula NÃO é "quantidade" de tokens, é o ID do imóvel!
      * 
-     * Validações automáticas pelo T-REX:
-     * - Identidade verificada (from e to)
-     * - Compliance rules (aprovações, regularidade)
-     * - Não congelado (freeze)
-     * - Não pausado (pause)
-     * 
-     * Amarração com Backend:
-     * 1. Backend configura aprovadores (IF confirma pagamento off-chain)
-     * 2. Aprovadores aprovam on-chain
-     * 3. Comprador aceita on-chain
-     * 4. Esta função é chamada
-     * 5. Backend escuta PropertyTransferred
-     * 6. Backend atualiza DB: matricula → novo dono
+     * Validações necessárias:
+     * - Propriedade existe e pertence ao vendedor
+     * - Contas não estão congeladas
+     * - APROVAÇÃO DA INSTITUIÇÃO FINANCEIRA (manual OU validador)
+     * - APROVAÇÃO DO CARTÓRIO (manual OU validador)
+     * - APROVAÇÃO DA PREFEITURA (manual OU validador)
+     * - Identidade verificada (T-REX)
+     * - Compliance rules (T-REX)
      */
     function transferProperty(address to, uint256 matricula) external {
         require(propertyExists[matricula], "Property not issued");
         require(propertyOwner[matricula] == msg.sender, "Not property owner");
         require(!this.isFrozen(msg.sender), "Sender account is frozen");
         require(!this.isFrozen(to), "Recipient account is frozen");
+        
+        // ========== VALIDAR APROVAÇÕES DAS 3 INSTITUIÇÕES ==========
+        bytes32 transferHash = _getTransferHash(msg.sender, to, matricula);
+        
+        // 1. Instituição Financeira
+        require(
+            _checkApproval(transferHash, financialValidator, financialApprovals, msg.sender, to, matricula),
+            "IF: aprovacao necessaria"
+        );
+        
+        // 2. Cartório
+        require(
+            _checkApproval(transferHash, registryOfficeValidator, registryOfficeApprovals, msg.sender, to, matricula),
+            "Cartorio: aprovacao necessaria"
+        );
+        
+        // 3. Prefeitura
+        require(
+            _checkApproval(transferHash, municipalityValidator, municipalityApprovals, msg.sender, to, matricula),
+            "Prefeitura: aprovacao necessaria"
+        );
         
         // Transfer usa função do Token T-REX (valida compliance, identity, etc)
         transfer(to, 1);
@@ -166,6 +224,11 @@ contract PropertyTitleTREX is Token {
         _removePropertyFromOwner(msg.sender, matricula);
         propertyOwner[matricula] = to;
         _addPropertyToOwner(to, matricula);
+        
+        // Limpar aprovações (evita reuso)
+        delete financialApprovals[transferHash];
+        delete registryOfficeApprovals[transferHash];
+        delete municipalityApprovals[transferHash];
         
         emit PropertyTransferred(matricula, msg.sender, to);
     }
@@ -300,6 +363,75 @@ contract PropertyTitleTREX is Token {
         return this.paused();
     }
     
+    // ========== Funções de Aprovação ==========
+    
+    /**
+     * @notice Instituição Financeira aprova uma transferência manualmente
+     * @param from Vendedor
+     * @param to Comprador
+     * @param matricula Matrícula
+     */
+    function approveTransferAsFinancial(
+        address from,
+        address to,
+        uint256 matricula
+    ) external onlyRole(FINANCIAL_ROLE) {
+        bytes32 h = _getTransferHash(from, to, matricula);
+        financialApprovals[h] = true;
+        emit TransferApprovalGranted(h, "FINANCIAL", msg.sender, from, to, matricula);
+    }
+    
+    /**
+     * @notice Cartório aprova uma transferência manualmente
+     */
+    function approveTransferAsRegistryOffice(
+        address from,
+        address to,
+        uint256 matricula
+    ) external onlyRole(REGISTRY_OFFICE_ROLE) {
+        bytes32 h = _getTransferHash(from, to, matricula);
+        registryOfficeApprovals[h] = true;
+        emit TransferApprovalGranted(h, "REGISTRY_OFFICE", msg.sender, from, to, matricula);
+    }
+    
+    /**
+     * @notice Prefeitura aprova uma transferência manualmente
+     */
+    function approveTransferAsMunicipality(
+        address from,
+        address to,
+        uint256 matricula
+    ) external onlyRole(MUNICIPALITY_ROLE) {
+        bytes32 h = _getTransferHash(from, to, matricula);
+        municipalityApprovals[h] = true;
+        emit TransferApprovalGranted(h, "MUNICIPALITY", msg.sender, from, to, matricula);
+    }
+    
+    /**
+     * @notice Configura validador da IF (opcional)
+     * @param validator Endereço do contrato validador (0 = desabilita)
+     */
+    function setFinancialValidator(address validator) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        financialValidator = validator;
+        emit ValidatorSet("FINANCIAL", validator);
+    }
+    
+    /**
+     * @notice Configura validador do Cartório (opcional)
+     */
+    function setRegistryOfficeValidator(address validator) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        registryOfficeValidator = validator;
+        emit ValidatorSet("REGISTRY_OFFICE", validator);
+    }
+    
+    /**
+     * @notice Configura validador da Prefeitura (opcional)
+     */
+    function setMunicipalityValidator(address validator) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        municipalityValidator = validator;
+        emit ValidatorSet("MUNICIPALITY", validator);
+    }
+    
     // ========== Internal Helper Functions ==========
     
     function _addPropertyToOwner(address owner, uint256 matricula) private {
@@ -319,6 +451,48 @@ contract PropertyTitleTREX is Token {
 
         _ownedProperties[owner].pop();
         delete _ownedPropertiesIndex[matricula];
+    }
+    
+    /**
+     * @notice Gera hash único da transferência
+     */
+    function _getTransferHash(
+        address from,
+        address to,
+        uint256 matricula
+    ) private pure returns (bytes32) {
+        return keccak256(abi.encode(from, to, matricula));
+    }
+    
+    /**
+     * @notice Verifica aprovação (manual OU via validador)
+     * @param transferHash Hash da transferência
+     * @param validator Endereço do validador (0 = não usa validador)
+     * @param manualApprovals Mapeamento de aprovações manuais
+     * @param from Vendedor
+     * @param to Comprador
+     * @param matricula Matrícula
+     * @return True se aprovado (manual ou via validador)
+     */
+    function _checkApproval(
+        bytes32 transferHash,
+        address validator,
+        mapping(bytes32 => bool) storage manualApprovals,
+        address from,
+        address to,
+        uint256 matricula
+    ) private view returns (bool) {
+        // Se tem validador configurado → chama validateTransfer
+        if (validator != address(0)) {
+            try IApproverValidator(validator).validateTransfer(from, to, matricula) returns (bool approved, string memory) {
+                return approved;
+            } catch {
+                return false; // Erro ao chamar validador
+            }
+        }
+        
+        // Se não tem validador → verifica aprovação manual
+        return manualApprovals[transferHash];
     }
     
     // Nota: decimals() é definido no init() do Token T-REX
