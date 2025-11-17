@@ -1,0 +1,29 @@
+No files changed, compilation skipped
+Warning: EIP-3855 is not supported in one or more of the RPCs used.
+Unsupported Chain IDs: 1337.
+Contracts deployed with a Solidity version equal or higher than 0.8.20 might not work properly.
+For more information, please see https://eips.ethereum.org/EIPS/eip-3855
+Script ran successfully.
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 1337
+
+Estimated gas price: 0 gwei
+
+Estimated total gas used for script: 21029188
+
+Estimated amount required: 0. ETH
+
+==========================
+
+Transactions saved to: /Users/fabiano/college/besu-property-ledger/broadcast/DeployPropertyTitleTREX.s.sol/1337/run-latest.json
+
+Sensitive values saved to: /Users/fabiano/college/besu-property-ledger/cache/DeployPropertyTitleTREX.s.sol/1337/run-latest.json
+
+Error: Failed to send transaction
+
+Context:
+- server returned an error response: error code -32009: Gas price below configured minimum gas price
