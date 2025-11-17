@@ -19,6 +19,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 echo -e "${BLUE}Este script vai executar:${NC}"
 echo "  1️⃣  Setup da rede Besu (4 validadores PoA)"
@@ -112,9 +113,9 @@ echo ""
 
 # Verificar containers
 echo "🐳 Containers Docker:"
-cd docker/besu
+cd "$PROJECT_ROOT/docker/besu"
 docker compose ps | grep -E "NAME|validator" || echo "  Nenhum container rodando"
-cd ../..
+cd "$PROJECT_ROOT"
 
 echo ""
 

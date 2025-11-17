@@ -1,0 +1,22 @@
+{
+  "network": {
+    "name": "Besu Local",
+    "chainId": 1337,
+    "rpcUrl": "http://127.0.0.1:8545"
+  },
+  "contracts": {
+    "PropertyTitleTREX": "0x05866b90148f0640e2cd595776d0c2653ef8058c",
+    "ModularCompliance": "0x09ec6c6db20413dfa339be1db8504deb3abb0c13",
+    "ApprovalsModule": "0x842f8a2edee57372509cdc85ae86cee5c68db67f",
+    "RegistryMDCompliance": "0x74df12b5d3902d7dc123b2194ec8d20aa9c505bb",
+    "IdentityRegistry": "0xc278fe6acad7dea524330366599063612cca916e",
+    "IdentityRegistryStorage": "0x631ba32a287c4f274d81792d73b4b1bf198ee201",
+    "TrustedIssuersRegistry": "0xfa71cf61f03acde944f9048c91675223ea6ac555",
+    "ClaimTopicsRegistry": "0x3037cf7ace990a6246afb9575b06075d6ff500a5"
+  },
+  "deployer": {
+    "address": "0x565524f400856766f11562832eB809d889491a01",
+    "privateKey": "0x51eba47406fcb3dfa80e9ff02c1a8efe1aa1552bf016e09d454e6a7502ef0c24"
+  }
+}
+

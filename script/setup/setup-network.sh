@@ -38,6 +38,9 @@ echo "📁 Verificando arquivos de rede..."
 echo "=================================================="
 echo ""
 
+# Flag para rastrear se genesis foi regenerado
+GENESIS_REGENERATED=false
+
 # Verificar se network files já existem
 if [ -d "network/files" ]; then
     echo -e "${YELLOW}⚠️  Network files já existem!${NC}"
@@ -48,6 +51,7 @@ if [ -d "network/files" ]; then
         rm -rf network/files
         rm -f network/genesis.json
         echo -e "${GREEN}✅ Removido${NC}"
+        GENESIS_REGENERATED=true
     else
         echo "⏩ Mantendo network files existentes"
     fi
@@ -65,6 +69,15 @@ if [ ! -d "network/files" ]; then
     if [ $? -eq 0 ]; then
         echo ""
         echo -e "${GREEN}✅ Network files gerados com sucesso!${NC}"
+        
+        # Corrigir chaves (Besu às vezes gera key como diretório)
+        echo ""
+        echo "🔧 Corrigindo configuração de chaves..."
+        ./fix-keys.sh
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}❌ Erro ao corrigir chaves${NC}"
+            exit 1
+        fi
     else
         echo ""
         echo -e "${RED}❌ Erro ao gerar network files${NC}"
@@ -87,7 +100,13 @@ if docker compose ps | grep -q "Up"; then
     echo ""
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "🔄 Reiniciando containers..."
-        docker compose down
+        # Se genesis foi regenerado, limpar volumes também
+        if [ "$GENESIS_REGENERATED" = true ]; then
+            echo "   (Limpando volumes devido ao novo genesis)"
+            docker compose down -v
+        else
+            docker compose down
+        fi
         docker compose up -d
     else
         echo "⏩ Mantendo containers existentes"
@@ -111,8 +130,8 @@ echo "⏳ Aguardando validadores iniciarem..."
 echo "=================================================="
 echo ""
 
-# Aguardar 10 segundos para os validadores iniciarem
-for i in {10..1}; do
+# Aguardar 15 segundos para os validadores iniciarem
+for i in {15..1}; do
     echo -ne "⏱️  Aguardando $i segundos...\r"
     sleep 1
 done

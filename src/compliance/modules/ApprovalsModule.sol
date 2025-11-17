@@ -72,6 +72,12 @@ contract ApprovalsModule is IModule, AccessControl {
         override
         returns (bool)
     {
+        // IMPORTANTE: Permitir mints (from == address(0)) sem aprovação
+        // Mints são feitos apenas por AGENT_ROLE, então já têm controle de acesso
+        if (_from == address(0)) {
+            return true;
+        }
+        
         bytes32 h = _getTransferHash(_from, _to, _value, _compliance);
         TransferConfig storage config = transferConfigs[h];
         

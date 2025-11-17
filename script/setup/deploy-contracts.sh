@@ -18,7 +18,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Navegar para raiz do projeto
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 echo -e "${GREEN}📂 Diretório do projeto:${NC} $(pwd)"
 echo ""
@@ -106,7 +106,7 @@ echo ""
 
 echo "Deploy script: $DEPLOY_SCRIPT"
 echo "RPC URL: $RPC_URL"
-echo "Gas Price: 0 (zero-gas)"
+echo "Gas Price: Auto (determinado pela rede)"
 echo ""
 
 read -p "Confirma o deploy? (y/n) " -n 1 -r
@@ -125,8 +125,6 @@ forge script "$DEPLOY_SCRIPT" \
   --rpc-url "$RPC_URL" \
   --private-key "$PRIVATE_KEY" \
   --broadcast \
-  --legacy \
-  --gas-price 0 \
   -vvv
 
 if [ $? -eq 0 ]; then

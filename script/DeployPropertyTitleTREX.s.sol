@@ -59,6 +59,7 @@ contract DeployPropertyTitleTREXScript is Script {
         
         // Initialize token (upgradeable pattern)
         // Note: init() já faz bindToken automaticamente e define owner como o contrato
+        // Note: initialize() agora adiciona automaticamente msg.sender como Agent
         token.initialize(
             address(registry),
             address(compliance),
@@ -67,10 +68,6 @@ contract DeployPropertyTitleTREXScript is Script {
             0, // decimals = 0 (indivisível)
             address(0) // onchainID pode ser zero
         );
-        
-        // Grant AGENT_ROLE to admin (pode emitir propriedades, pause, freeze)
-        // Note: O owner é o próprio contrato, então addAgent deve ser chamado pelo contrato
-        // O admin já é owner via tx.origin, então pode adicionar agents
 
         vm.stopBroadcast();
     }

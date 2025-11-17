@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import {Token} from "@trex/token/Token.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 /**
  * @title IApproverValidator
@@ -49,7 +49,7 @@ interface IApproverValidator {
  * - Agentes podem congelar contas específicas (compliance)
  * - Agentes podem forçar transferências (recuperação/correção)
  */
-contract PropertyTitleTREX is Token, AccessControl {
+contract PropertyTitleTREX is Token, AccessControlUpgradeable {
     
     // ========== Roles das Instituições ==========
     
@@ -137,6 +137,13 @@ contract PropertyTitleTREX is Token, AccessControl {
     ) external {
         // Inicializar Token T-REX base (chamada direta, não super)
         this.init(_identityRegistry, _compliance, _name, _symbol, _decimals, _onchainID);
+        
+        // Configurar roles (AccessControl já está inicializado pela herança)
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        
+        // Adicionar msg.sender como Agent do Token T-REX
+        // IMPORTANTE: isso permite que o admin emita títulos de propriedade
+        this.addAgent(msg.sender);
     }
     
     // ========== Core Functions (Property Management) ==========
@@ -163,8 +170,10 @@ contract PropertyTitleTREX is Token, AccessControl {
         require(!propertyExists[matricula], "Property already issued");
         require(matricula > 0, "Invalid matricula");
         
-        // Emitir 1 unidade de token (1 título = 1 propriedade)
-        mint(to, 1);
+        // Emitir token usando matrícula como amount
+        // IMPORTANTE: amount = matrícula (para que o compliance module possa validar)
+        // Cada matrícula é única, então cada property tem um "amount" único
+        mint(to, matricula);
         
         // Registrar propriedade
         propertyExists[matricula] = true;

@@ -18,7 +18,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Navegar para raiz do projeto
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 echo -e "${GREEN}📂 Diretório do projeto:${NC} $(pwd)"
 echo ""

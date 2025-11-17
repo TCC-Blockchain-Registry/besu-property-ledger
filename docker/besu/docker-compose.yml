@@ -20,7 +20,7 @@ services:
     volumes:
       - validator1-data:/data
       - ./network/genesis.json:/config/genesis.json
-      - ./network/files/keys/0x13477f25d547b82dbbf932c720d1e1e007bdd2db/key:/keys/key:ro
+      - ./network/files/keys/0x18a4e9b398c0fd1f8204d8354d486920c3f44fa0/key:/keys/key:ro
     ports:
       - "8545:8545"
       - "30303:30303"
@@ -46,7 +46,7 @@ services:
     volumes:
       - validator2-data:/data
       - ./network/genesis.json:/config/genesis.json
-      - ./network/files/keys/0x5bf5fbac219488134b606d264cbd52d4db48a084/key:/keys/key:ro
+      - ./network/files/keys/0x279afebc3fe9cde783c9bc983e461425252c5e09/key:/keys/key:ro
     ports:
       - "30304:30304"
     networks:
@@ -71,7 +71,7 @@ services:
     volumes:
       - validator3-data:/data
       - ./network/genesis.json:/config/genesis.json
-      - ./network/files/keys/0x744028563f462c31bc954497fbbe2b6a99a90618/key:/keys/key:ro
+      - ./network/files/keys/0x6b0f11bf2e76b6ae67d333f688f2bf2bd3c4f4a2/key:/keys/key:ro
     ports:
       - "30305:30305"
     networks:
@@ -96,7 +96,7 @@ services:
     volumes:
       - validator4-data:/data
       - ./network/genesis.json:/config/genesis.json
-      - ./network/files/keys/0x94836f0b1fb20bee5df28f795fcde7414ad058c6/key:/keys/key:ro
+      - ./network/files/keys/0x8d0f34e5078d585af0576479549be3949681472c/key:/keys/key:ro
     ports:
       - "30306:30306"
     networks:
