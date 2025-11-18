@@ -20,7 +20,10 @@ remappings = [
     "@onchain-id/solidity/=lib/solidity/",
 ]
 
+# Gas configuration for Besu
+gas_price = 1000
+
 [rpc_endpoints]
-besu = "http://127.0.0.1:8545"
+besu = "http://52.67.12.10:8545"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

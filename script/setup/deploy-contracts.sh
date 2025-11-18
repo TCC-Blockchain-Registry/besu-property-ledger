@@ -24,7 +24,7 @@ echo -e "${GREEN}📂 Diretório do projeto:${NC} $(pwd)"
 echo ""
 
 # Configurações
-RPC_URL="http://127.0.0.1:8545"
+RPC_URL="http://52.67.12.10:8545"
 PRIVATE_KEY="0x51eba47406fcb3dfa80e9ff02c1a8efe1aa1552bf016e09d454e6a7502ef0c24"
 DEPLOY_SCRIPT="script/DeployPropertyTitleTREX.s.sol:DeployPropertyTitleTREXScript"
 
