@@ -69,6 +69,18 @@ contract DeployPropertyTitleTREXScript is Script {
             address(0) // onchainID pode ser zero
         );
 
+        // ========== Grant Institutional Roles to Admin ==========
+        // For development/testing: admin can approve as all institutions
+        // In production: grant these roles to specific institutional addresses
+
+        bytes32 FINANCIAL_ROLE = keccak256("FINANCIAL_ROLE");
+        bytes32 REGISTRY_OFFICE_ROLE = keccak256("REGISTRY_OFFICE_ROLE");
+        bytes32 MUNICIPALITY_ROLE = keccak256("MUNICIPALITY_ROLE");
+
+        token.grantRole(FINANCIAL_ROLE, admin);
+        token.grantRole(REGISTRY_OFFICE_ROLE, admin);
+        token.grantRole(MUNICIPALITY_ROLE, admin);
+
         vm.stopBroadcast();
     }
 }
